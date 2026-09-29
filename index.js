@@ -128,3 +128,7 @@ function requireAuth(req, res, next) {
 app.get("/api/me", requireAuth, (req, res) => {
   res.json({ userId: req.userId });
 });
+
+app.get("/api/ping", requireAuth, (req, res) => {
+  res.json({ poruka: "pogodio si zaštićenu rutu" });
+});

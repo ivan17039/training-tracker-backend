@@ -132,3 +132,35 @@ app.get("/api/me", requireAuth, (req, res) => {
 app.get("/api/ping", requireAuth, (req, res) => {
   res.json({ poruka: "pogodio si zaštićenu rutu" });
 });
+
+app.get("/api/workouts", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM workouts WHERE user_id = $1 ORDER BY date_millis DESC",
+      [req.userId],
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Nešto je pošlo po zlu" });
+  }
+});
+
+app.post("/api/workouts", requireAuth, async (req, res) => {
+  const { name, dateMillis, exercises } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: "Ime treninga je obavezno" });
+  }
+
+  try {
+    const result = await pool.query(
+      "INSERT INTO workouts (user_id, name, date_millis, exercises) VALUES ($1, $2, $3, $4) RETURNING *",
+      [req.userId, name, dateMillis, JSON.stringify(exercises || [])],
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Nešto je pošlo po zlu" });
+  }
+});

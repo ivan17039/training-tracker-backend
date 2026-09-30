@@ -164,3 +164,21 @@ app.post("/api/workouts", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Nešto je pošlo po zlu" });
   }
 });
+
+app.delete("/api/workouts/:id", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "DELETE FROM workouts WHERE id = $1 AND user_id = $2",
+      [req.params.id, req.userId],
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: "Trening nije pronađen",
+      });
+    }
+    res.status(204).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Nešto je pošlo po zlu" });
+  }
+});
